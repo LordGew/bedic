@@ -1,0 +1,368 @@
+<div class="moderation-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-title">
+      <h1>{{ languageService.translate('moderation.dashboard_title') }}</h1>
+      <p class="subtitle">{{ languageService.translate('moderation.dashboard_subtitle') }}</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        {{ languageService.translate('common.refresh') }}
+      </button>
+      <button mat-raised-button (click)="exportData()">
+        <mat-icon>download</mat-icon>
+        {{ languageService.translate('moderation.export') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group [(selectedIndex)]="activeTab" class="dashboard-tabs">
+    <!-- Tab 1: Estadísticas -->
+    <mat-tab label="{{ languageService.translate('moderation.statistics') }}">
+      <div class="tab-content">
+        <div *ngIf="dashboardStats" class="stats-grid">
+          <!-- Total Actions -->
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <mat-icon>assessment</mat-icon>
+              </div>
+              <div class="stat-info">
+                <h3>{{ languageService.translate('moderation.total_actions') }}</h3>
+                <p class="stat-value">{{ dashboardStats.totalActions }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Unique Users -->
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <mat-icon>people</mat-icon>
+              </div>
+              <div class="stat-info">
+                <h3>{{ languageService.translate('moderation.affected_users') }}</h3>
+                <p class="stat-value">{{ dashboardStats.uniqueUsers.length }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Avg Toxicity -->
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <mat-icon>warning</mat-icon>
+              </div>
+              <div class="stat-info">
+                <h3>{{ languageService.translate('moderation.avg_toxicity') }}</h3>
+                <p class="stat-value">{{ (dashboardStats.avgToxicityScore * 100).toFixed(1) }}%</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Avg Spam -->
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-icon">
+                <mat-icon>spam</mat-icon>
+              </div>
+              <div class="stat-info">
+                <h3>{{ languageService.translate('moderation.avg_spam') }}</h3>
+                <p class="stat-value">{{ (dashboardStats.avgSpamScore).toFixed(1) }}</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-grid">
+          <!-- Actions by Type -->
+          <mat-card class="chart-card">
+            <mat-card-title>{{ languageService.translate('moderation.actions_by_type') }}</mat-card-title>
+            <mat-card-content>
+              <div class="chart-list">
+                <div *ngFor="let item of dashboardStats?.byActionType" class="chart-item">
+                  <span class="label">{{ item._id }}</span>
+                  <div class="bar-container">
+                    <div class="bar" [style.width.%]="getPercentage(item.count, dashboardStats?.totalActions || 1)"></div>
+                  </div>
+                  <span class="count">{{ item.count }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Severity Distribution -->
+          <mat-card class="chart-card">
+            <mat-card-title>{{ languageService.translate('moderation.severity_distribution') }}</mat-card-title>
+            <mat-card-content>
+              <div class="chart-list">
+                <div *ngFor="let item of dashboardStats?.bySeverity" class="chart-item">
+                  <span class="label" [style.color]="getSeverityColor(item._id)">{{ item._id }}</span>
+                  <div class="bar-container">
+                    <div class="bar" [style.background-color]="getSeverityColor(item._id)" [style.width.%]="getPercentage(item.count, dashboardStats?.totalActions || 1)"></div>
+                  </div>
+                  <span class="count">{{ item.count }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Top Reasons -->
+          <mat-card class="chart-card">
+            <mat-card-title>{{ languageService.translate('moderation.top_reasons') }}</mat-card-title>
+            <mat-card-content>
+              <div class="chart-list">
+                <div *ngFor="let item of dashboardStats?.byReason | slice:0:5" class="chart-item">
+                  <span class="label">{{ item._id }}</span>
+                  <div class="bar-container">
+                    <div class="bar" [style.width.%]="getPercentage(item.count, dashboardStats?.totalActions || 1)"></div>
+                  </div>
+                  <span class="count">{{ item.count }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Logs de Moderación -->
+    <mat-tab label="{{ languageService.translate('moderation.moderation_logs') }}">
+      <div class="tab-content">
+        <!-- Filtros Avanzados -->
+        <div class="advanced-filters">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ languageService.translate('moderation.period') }}</mat-label>
+            <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+              <mat-option [value]="7">{{ languageService.translate('moderation.last_7_days') }}</mat-option>
+              <mat-option [value]="30">{{ languageService.translate('moderation.last_30_days') }}</mat-option>
+              <mat-option [value]="90">{{ languageService.translate('moderation.last_90_days') }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ languageService.translate('moderation.action_type') }}</mat-label>
+            <mat-select [(ngModel)]="selectedActionType" (selectionChange)="onFilterChange()">
+              <mat-option value="">{{ languageService.translate('common.all') }}</mat-option>
+              <mat-option value="COMMENT_HIDDEN">{{ languageService.translate('moderation.comment_hidden') }}</mat-option>
+              <mat-option value="COMMENT_DELETED">{{ languageService.translate('moderation.comment_deleted') }}</mat-option>
+              <mat-option value="USER_MUTED">{{ languageService.translate('moderation.user_muted') }}</mat-option>
+              <mat-option value="USER_BANNED">{{ languageService.translate('moderation.user_banned') }}</mat-option>
+              <mat-option value="CONTENT_FLAGGED">{{ languageService.translate('moderation.content_flagged') }}</mat-option>
+              <mat-option value="SPAM_DETECTED">{{ languageService.translate('moderation.spam_detected') }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ languageService.translate('moderation.severity') }}</mat-label>
+            <mat-select [(ngModel)]="selectedSeverity" (selectionChange)="onFilterChange()">
+              <mat-option value="">{{ languageService.translate('common.all') }}</mat-option>
+              <mat-option value="LEVE">{{ languageService.translate('moderation.mild') }}</mat-option>
+              <mat-option value="MODERADO">{{ languageService.translate('moderation.moderate') }}</mat-option>
+              <mat-option value="SEVERO">{{ languageService.translate('moderation.severe') }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ languageService.translate('moderation.reason') }}</mat-label>
+            <mat-select [(ngModel)]="selectedReason" (selectionChange)="onFilterChange()">
+              <mat-option value="">{{ languageService.translate('common.all') }}</mat-option>
+              <mat-option value="BAD_WORDS_SEVERE">{{ languageService.translate('moderation.bad_words_severe') }}</mat-option>
+              <mat-option value="BAD_WORDS_MODERATE">{{ languageService.translate('moderation.bad_words_moderate') }}</mat-option>
+              <mat-option value="SPAM_DETECTED">{{ languageService.translate('moderation.spam_detected') }}</mat-option>
+              <mat-option value="HIGH_TOXICITY">{{ languageService.translate('moderation.high_toxicity') }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ languageService.translate('moderation.search') }}</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (keyup)="onSearchChange()" [placeholder]="languageService.translate('moderation.search_user_or_content')">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Tabla de Logs -->
+        <div class="table-container">
+          <div class="table-info">
+            <p>{{ languageService.translate('moderation.total_records') }}: <strong>{{ dataSource.data.length }}</strong></p>
+          </div>
+
+          <table mat-table [dataSource]="dataSource" matSort class="moderation-table">
+            <!-- Action Type Column -->
+            <ng-container matColumnDef="actionType">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('moderation.action') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="action-type">
+                  <mat-icon [matTooltip]="element.actionType">{{ getActionTypeIcon(element.actionType) }}</mat-icon>
+                  <span>{{ element.actionType }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Reason Column -->
+            <ng-container matColumnDef="reason">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('moderation.reason') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-chip>{{ element.reason }}</mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Severity Column -->
+            <ng-container matColumnDef="severity">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('moderation.severity') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-chip [style.background-color]="getSeverityColor(element.severity)" [style.color]="'white'">
+                  {{ element.severity }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- User Column -->
+            <ng-container matColumnDef="userName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('moderation.user') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="user-info">
+                  <strong>@{{ element.userName }}</strong>
+                  <span class="email">{{ element.userEmail }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Detected Issues Column -->
+            <ng-container matColumnDef="detectedIssues">
+              <th mat-header-cell *matHeaderCellDef>{{ languageService.translate('moderation.detected_issues') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <div class="issues-list">
+                  <mat-chip *ngFor="let issue of element.detectedIssues" size="small">
+                    {{ issue }}
+                  </mat-chip>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Date Column -->
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('moderation.date') }}</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.createdAt | date:'short' }}
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>{{ languageService.translate('moderation.actions') }}</th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button [matMenuTriggerFor]="menu" [matTooltip]="languageService.translate('moderation.more_actions')">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="viewUserViolations(element.userId)">
+                    <mat-icon>history</mat-icon>
+                    <span>{{ languageService.translate('moderation.view_violations') }}</span>
+                  </button>
+                  <button mat-menu-item>
+                    <mat-icon>person</mat-icon>
+                    <span>{{ languageService.translate('moderation.view_profile') }}</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item>
+                    <mat-icon>info</mat-icon>
+                    <span>{{ languageService.translate('moderation.view_details') }}</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+            [aria-label]="languageService.translate('moderation.select_page')">
+          </mat-paginator>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Información del Sistema -->
+    <mat-tab label="{{ languageService.translate('moderation.system_info') }}">
+      <div class="tab-content">
+        <mat-card class="info-card">
+          <mat-card-title>{{ languageService.translate('moderation.how_system_works') }}</mat-card-title>
+          <mat-card-content>
+            <div class="info-section">
+              <h4>🤖 {{ languageService.translate('moderation.automated_detection') }}</h4>
+              <p>{{ languageService.translate('moderation.automated_detection_desc') }}</p>
+              <ul>
+                <li>{{ languageService.translate('moderation.bad_words_detection') }}</li>
+                <li>{{ languageService.translate('moderation.spam_detection') }}</li>
+                <li>{{ languageService.translate('moderation.toxicity_analysis') }}</li>
+                <li>{{ languageService.translate('moderation.trust_score_calc') }}</li>
+              </ul>
+            </div>
+
+            <div class="info-section">
+              <h4>⚖️ {{ languageService.translate('moderation.progressive_sanctions') }}</h4>
+              <p>{{ languageService.translate('moderation.progressive_sanctions_desc') }}</p>
+              <table class="sanctions-table">
+                <tr>
+                  <td>1 {{ languageService.translate('moderation.violation') }}</td>
+                  <td>{{ languageService.translate('moderation.flag_for_review') }}</td>
+                </tr>
+                <tr>
+                  <td>3+ {{ languageService.translate('moderation.violations') }}</td>
+                  <td>{{ languageService.translate('moderation.mute_24h') }}</td>
+                </tr>
+                <tr>
+                  <td>5+ {{ languageService.translate('moderation.violations') }}</td>
+                  <td>{{ languageService.translate('moderation.mute_3days') }}</td>
+                </tr>
+                <tr>
+                  <td>7+ {{ languageService.translate('moderation.violations') }}</td>
+                  <td>{{ languageService.translate('moderation.mute_7days') }}</td>
+                </tr>
+                <tr>
+                  <td>10+ {{ languageService.translate('moderation.violations') }}</td>
+                  <td>{{ languageService.translate('moderation.permanent_mute') }}</td>
+                </tr>
+                <tr>
+                  <td>3+ {{ languageService.translate('moderation.severe_violations') }}</td>
+                  <td>{{ languageService.translate('moderation.permanent_ban') }}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="info-section">
+              <h4>🎯 {{ languageService.translate('moderation.severity_levels') }}</h4>
+              <div class="severity-info">
+                <div class="severity-item">
+                  <span class="badge" style="background-color: #ff9800;">LEVE</span>
+                  <p>{{ languageService.translate('moderation.mild_desc') }}</p>
+                </div>
+                <div class="severity-item">
+                  <span class="badge" style="background-color: #ff6f00;">MODERADO</span>
+                  <p>{{ languageService.translate('moderation.moderate_desc') }}</p>
+                </div>
+                <div class="severity-item">
+                  <span class="badge" style="background-color: #d32f2f;">SEVERO</span>
+                  <p>{{ languageService.translate('moderation.severe_desc') }}</p>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>{{ languageService.translate('common.loading') }}</p>
+  </div>
+</div>

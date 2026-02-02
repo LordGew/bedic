@@ -1,0 +1,245 @@
+<div class="moderation-complete-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <h1>📋 Sistema de Moderación Completo</h1>
+      <p class="subtitle">Gestión integral de reportes y acciones de moderación</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="refreshData()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon> Actualizar
+      </button>
+      <button mat-raised-button (click)="exportToCSV()" [disabled]="loading || dataSource.data.length === 0">
+        <mat-icon>download</mat-icon> Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-label">Total de Reportes</div>
+        <div class="stat-value">{{ stats.totalReports }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card pending">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-content">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value">{{ stats.pendingReports }}</div>
+        <mat-progress-bar mode="determinate" [value]="getProgressPercentage(stats.pendingReports, stats.totalReports)"></mat-progress-bar>
+      </div>
+    </div>
+
+    <div class="stat-card approved">
+      <div class="stat-icon">✓</div>
+      <div class="stat-content">
+        <div class="stat-label">Aprobados</div>
+        <div class="stat-value">{{ stats.approvedReports }}</div>
+        <mat-progress-bar mode="determinate" [value]="getProgressPercentage(stats.approvedReports, stats.totalReports)"></mat-progress-bar>
+      </div>
+    </div>
+
+    <div class="stat-card deleted">
+      <div class="stat-icon">🗑️</div>
+      <div class="stat-content">
+        <div class="stat-label">Eliminados</div>
+        <div class="stat-value">{{ stats.deletedReports }}</div>
+        <mat-progress-bar mode="determinate" [value]="getProgressPercentage(stats.deletedReports, stats.totalReports)"></mat-progress-bar>
+      </div>
+    </div>
+
+    <div class="stat-card banned">
+      <div class="stat-icon">🚫</div>
+      <div class="stat-content">
+        <div class="stat-label">Usuarios Baneados</div>
+        <div class="stat-value">{{ stats.bannedUsers }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card auto">
+      <div class="stat-icon">🤖</div>
+      <div class="stat-content">
+        <div class="stat-label">Auto-Moderados</div>
+        <div class="stat-value">{{ stats.autoModeratedCount }}</div>
+        <div class="stat-detail">Manual: {{ stats.manualModeratedCount }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information Panel -->
+  <mat-card class="info-panel">
+    <mat-card-header>
+      <mat-card-title>ℹ️ ¿Cómo funciona el sistema?</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>📊 Estadísticas:</strong>
+          <p>Visualiza el estado general de todos los reportes. Cada métrica muestra el progreso y distribución de acciones.</p>
+        </div>
+        <div class="info-item">
+          <strong>🔍 Filtros Avanzados:</strong>
+          <p>Filtra por estado, tipo de contenido, moderación automática o manual, y busca por lugar o usuario.</p>
+        </div>
+        <div class="info-item">
+          <strong>⚙️ Acciones de Moderación:</strong>
+          <p>Aprueba, rechaza o baneaUsuarios directamente desde la tabla. Las acciones se registran automáticamente.</p>
+        </div>
+        <div class="info-item">
+          <strong>📥 Exportación de Datos:</strong>
+          <p>Descarga todos los registros filtrados en formato CSV para análisis externo o reportes.</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <h3>🔍 Filtros Avanzados</h3>
+    <div class="filters-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="PENDING">Pendiente</mat-option>
+          <mat-option value="APPROVED">Aprobado</mat-option>
+          <mat-option value="DELETED">Eliminado</mat-option>
+          <mat-option value="HIDDEN">Oculto</mat-option>
+          <mat-option value="USER_BANNED">Usuario Baneado</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de Contenido</mat-label>
+        <mat-select [(ngModel)]="selectedType" (selectionChange)="applyFilters()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="COMMENT">Comentario</mat-option>
+          <mat-option value="REVIEW">Reseña</mat-option>
+          <mat-option value="PLACE">Lugar</mat-option>
+          <mat-option value="PHOTO">Foto</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de Moderación</mat-label>
+        <mat-select [(ngModel)]="selectedAutoModerated" (selectionChange)="applyFilters()">
+          <mat-option value="">Todos</mat-option>
+          <mat-option value="yes">Auto-Moderado</mat-option>
+          <mat-option value="no">Moderado Manualmente</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Buscar (Lugar, Usuario, Razón)</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (keyup)="applyFilters()" placeholder="Escribe para buscar...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <div *ngIf="loading" class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Cargando reportes...</p>
+    </div>
+
+    <div *ngIf="!loading && dataSource.data.length === 0" class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <p>No hay reportes que mostrar</p>
+    </div>
+
+    <div *ngIf="!loading && dataSource.data.length > 0" class="table-wrapper">
+      <table mat-table [dataSource]="dataSource" matSort class="moderation-table">
+        <!-- Lugar -->
+        <ng-container matColumnDef="place">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Lugar</th>
+          <td mat-cell *matCellDef="let element">
+            <strong>{{ element.placeName }}</strong>
+          </td>
+        </ng-container>
+
+        <!-- Tipo -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+          <td mat-cell *matCellDef="let element">
+            <mat-chip [ngClass]="'type-' + element.contentType">
+              {{ getTypeLabel(element.contentType) }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Usuario -->
+        <ng-container matColumnDef="userName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+          <td mat-cell *matCellDef="let element">
+            &#64;{{ element.userName }}
+          </td>
+        </ng-container>
+
+        <!-- Razón -->
+        <ng-container matColumnDef="reason">
+          <th mat-header-cell *matHeaderCellDef>Razón</th>
+          <td mat-cell *matCellDef="let element">
+            <span class="reason-text">{{ element.reason }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+          <td mat-cell *matCellDef="let element">
+            <mat-chip [ngClass]="'status-' + element.moderationAction">
+              {{ getStatusLabel(element.moderationAction) }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Fecha -->
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.createdAt | date:'short' }}
+          </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Más acciones">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="moderateReport(element, 'APPROVED')" *ngIf="element.moderationAction !== 'APPROVED'">
+                <mat-icon>check_circle</mat-icon>
+                <span>Aprobar</span>
+              </button>
+              <button mat-menu-item (click)="moderateReport(element, 'DELETED')" *ngIf="element.moderationAction !== 'DELETED'">
+                <mat-icon>delete</mat-icon>
+                <span>Eliminar</span>
+              </button>
+              <button mat-menu-item (click)="moderateReport(element, 'USER_BANNED')" *ngIf="element.moderationAction !== 'USER_BANNED'">
+                <mat-icon>block</mat-icon>
+                <span>Banear Usuario</span>
+              </button>
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons
+        aria-label="Select page of reports">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

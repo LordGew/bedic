@@ -1,0 +1,168 @@
+<div class="user-management-container">
+  <div class="header">
+    <h1>Gestión de Usuarios</h1>
+    <div class="header-actions">
+      <button mat-raised-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <!-- Users List Tab -->
+    <mat-tab label="Lista de Usuarios">
+      <div class="tab-content">
+        <div class="filters">
+          <mat-form-field appearance="outline">
+            <mat-label>Buscar</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Nombre, usuario...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rol</mat-label>
+            <mat-select (selectionChange)="filterByRole($event.value)">
+              <mat-option value="">Todos</mat-option>
+              <mat-option value="admin">Admin</mat-option>
+              <mat-option value="moderator">Moderador</mat-option>
+              <mat-option value="user">Usuario</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select (selectionChange)="filterByStatus($event.value)">
+              <mat-option value="">Todos</mat-option>
+              <mat-option value="active">Activo</mat-option>
+              <mat-option value="banned">Baneado</mat-option>
+              <mat-option value="muted">Silenciado</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="table-container">
+          <table mat-table [dataSource]="dataSource" matSort class="users-table">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <!-- Username Column -->
+            <ng-container matColumnDef="username">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Usuario</th>
+              <td mat-cell *matCellDef="let element">&#64;{{ element.username }}</td>
+            </ng-container>
+
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Rol</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-chip [ngClass]="'role-' + element.role">
+                  {{ element.role | uppercase }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Verified Column -->
+            <ng-container matColumnDef="verified">
+              <th mat-header-cell *matHeaderCellDef>Verificado</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-icon *ngIf="element.isVerified" class="verified">check_circle</mat-icon>
+                <mat-icon *ngIf="!element.isVerified" class="unverified">cancel</mat-icon>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-chip *ngIf="element.isBanned" class="status-banned">Baneado</mat-chip>
+                <mat-chip *ngIf="element.isMuted && !element.isBanned" class="status-muted">Silenciado</mat-chip>
+                <mat-chip *ngIf="!element.isBanned && !element.isMuted" class="status-active">Activo</mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button (click)="viewProfile(element)" matTooltip="Ver perfil">
+                  <mat-icon>person</mat-icon>
+                </button>
+                <button mat-icon-button (click)="editProfile(element)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Más acciones">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="manageBadges(element)">
+                    <mat-icon>emoji_events</mat-icon>
+                    <span>Gestionar Insignias</span>
+                  </button>
+                  <button mat-menu-item (click)="viewSavedPlaces(element)">
+                    <mat-icon>bookmark</mat-icon>
+                    <span>Ver Lugares Guardados</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="muteUser(element)" *ngIf="!element.isMuted">
+                    <mat-icon>volume_off</mat-icon>
+                    <span>Silenciar</span>
+                  </button>
+                  <button mat-menu-item (click)="banUser(element)" *ngIf="!element.isBanned">
+                    <mat-icon>block</mat-icon>
+                    <span>Banear</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons
+            aria-label="Select page of users">
+          </mat-paginator>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Verifications Tab -->
+    <mat-tab label="Verificaciones Pendientes">
+      <div class="tab-content">
+        <p>Ir a la sección de Verificaciones para gestionar solicitudes de verificación</p>
+        <button mat-raised-button color="primary" routerLink="/dashboard/verifications">
+          <mat-icon>verified_user</mat-icon>
+          Ir a Verificaciones
+        </button>
+      </div>
+    </mat-tab>
+
+    <!-- Badges Tab -->
+    <mat-tab label="Insignias">
+      <div class="tab-content">
+        <p>Ir a la sección de Insignias para crear y gestionar insignias</p>
+        <button mat-raised-button color="primary" routerLink="/dashboard/badges">
+          <mat-icon>emoji_events</mat-icon>
+          Ir a Insignias
+        </button>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div *ngIf="loading" class="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando usuarios...</p>
+  </div>
+</div>

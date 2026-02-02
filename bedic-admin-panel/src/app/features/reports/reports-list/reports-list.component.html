@@ -1,0 +1,230 @@
+<div class="reports-container">
+  <div class="reports-header">
+    <h1>Gestión de Reportes</h1>
+    <p>Revisa y gestiona reportes de usuarios y contenido</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <label>Estado:</label>
+      <select [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+        <option *ngFor="let option of statusOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Tipo de Contenido:</label>
+      <select [(ngModel)]="selectedContentType" (change)="onContentTypeChange()">
+        <option *ngFor="let option of contentTypeOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <button class="btn-refresh" (click)="loadReports()">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando reportes...</p>
+  </div>
+
+  <!-- Lista de reportes -->
+  <div *ngIf="!loading && reports.length > 0" class="reports-list">
+    <table class="reports-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Tipo</th>
+          <th>Razón</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let report of reports" class="report-row">
+          <td>
+            <div class="user-info">
+              <img *ngIf="report.user.avatar_url" [src]="report.user.avatar_url" alt="Avatar" class="avatar">
+              <div>
+                <p class="username">{{ report.user.username }}</p>
+                <p class="name">{{ report.user.name }}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge badge-content">{{ getContentTypeLabel(report.contentType) }}</span>
+          </td>
+          <td>
+            <span class="reason">{{ getReasonLabel(report.reason) }}</span>
+          </td>
+          <td>
+            <span class="status-badge" [style.backgroundColor]="getStatusColor(report.status)">
+              {{ getStatusLabel(report.status) }}
+            </span>
+          </td>
+          <td>
+            <small>{{ formatDate(report.createdAt) }}</small>
+          </td>
+          <td>
+            <button class="btn-action" (click)="openActionModal(report)">
+              ⚙️ Gestionar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button 
+        class="btn-page" 
+        [disabled]="currentPage === 1"
+        (click)="goToPage(currentPage - 1)">
+        ← Anterior
+      </button>
+      
+      <span class="page-info">
+        Página {{ currentPage }} de {{ totalPages }} ({{ totalReports }} reportes)
+      </span>
+      
+      <button 
+        class="btn-page" 
+        [disabled]="currentPage === totalPages"
+        (click)="goToPage(currentPage + 1)">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- Sin reportes -->
+  <div *ngIf="!loading && reports.length === 0" class="no-reports">
+    <p>📭 No hay reportes para mostrar</p>
+  </div>
+
+  <!-- Modal de acción -->
+  <div *ngIf="showActionModal && selectedReport" class="modal-overlay" (click)="closeActionModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Gestionar Reporte</h2>
+        <button class="btn-close" (click)="closeActionModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Información del reporte -->
+        <div class="report-info">
+          <h3>Información del Reporte</h3>
+          <p><strong>Usuario:</strong> {{ selectedReport.user.username }}</p>
+          <p><strong>Tipo:</strong> {{ getContentTypeLabel(selectedReport.contentType) }}</p>
+          <p><strong>Razón:</strong> {{ getReasonLabel(selectedReport.reason) }}</p>
+          <p><strong>Descripción:</strong> {{ selectedReport.description }}</p>
+          <p><strong>Fecha:</strong> {{ formatDate(selectedReport.createdAt) }}</p>
+        </div>
+
+        <!-- Imágenes de Evidencia -->
+        <div *ngIf="selectedReport.evidenceImages && selectedReport.evidenceImages.length > 0" class="evidence-images">
+          <h3>📸 Imágenes de Evidencia ({{ selectedReport.evidenceImages.length }})</h3>
+          <div class="images-grid">
+            <div *ngFor="let image of selectedReport.evidenceImages; let i = index" class="image-card">
+              <img [src]="image.url" [alt]="'Evidencia ' + (i + 1)" class="evidence-image">
+              <div class="image-info">
+                <p class="image-caption" *ngIf="image.caption">{{ image.caption }}</p>
+                <p class="image-meta">
+                  <small>{{ formatDate(image.uploadedAt) }}</small>
+                  <small *ngIf="image.size"> • {{ formatFileSize(image.size) }}</small>
+                </p>
+              </div>
+              <a [href]="image.url" target="_blank" class="btn-download" title="Descargar imagen">
+                ⬇️
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de acción -->
+        <div class="action-form">
+          <h3>Tomar Acción</h3>
+
+          <div class="form-group">
+            <label>Tipo de Acción:</label>
+            <select [(ngModel)]="actionType">
+              <option value="">-- Selecciona una acción --</option>
+              <option *ngFor="let action of actionTypeOptions" [value]="action.value">
+                {{ action.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Razón:</label>
+            <input 
+              type="text" 
+              [(ngModel)]="actionReason" 
+              placeholder="Explica por qué tomas esta acción"
+              class="form-input">
+          </div>
+
+          <div class="form-group" *ngIf="actionType === 'USER_MUTED'">
+            <label>Duración (horas):</label>
+            <input 
+              type="number" 
+              [(ngModel)]="actionDuration" 
+              placeholder="Ej: 24"
+              class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label>Notas de Moderación:</label>
+            <textarea 
+              [(ngModel)]="moderationNotes" 
+              placeholder="Notas internas sobre esta acción"
+              class="form-textarea"
+              rows="4"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Cambiar Estado:</label>
+            <select (change)="updateStatus(selectedReport, $event.target.value)">
+              <option value="">-- Sin cambios --</option>
+              <option *ngFor="let status of statusOptions" [value]="status.value">
+                {{ status.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Historial de acciones -->
+        <div *ngIf="selectedReport.actions.length > 0" class="actions-history">
+          <h3>Historial de Acciones</h3>
+          <div *ngFor="let action of selectedReport.actions" class="action-item">
+            <p><strong>{{ action.type }}</strong></p>
+            <p *ngIf="action.reason">Razón: {{ action.reason }}</p>
+            <p><small>{{ formatDate(action.takenAt) }}</small></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeActionModal()">Cancelar</button>
+        <button 
+          class="btn-submit" 
+          (click)="takeAction()"
+          [disabled]="takingAction || !actionType || !actionReason">
+          {{ takingAction ? 'Procesando...' : 'Tomar Acción' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

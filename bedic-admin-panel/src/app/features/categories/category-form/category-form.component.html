@@ -1,0 +1,106 @@
+<form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
+  <h2 mat-dialog-title>
+    {{ isEditMode ? 'Editar Categoría' : 'Nueva Categoría' }}
+  </h2>
+
+  <mat-dialog-content class="form-content">
+    <!-- Nombre de la categoría -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre de la categoría *</mat-label>
+      <input matInput formControlName="name" placeholder="Ej: Restaurantes">
+      <mat-error>{{ getErrorMessage('name') }}</mat-error>
+    </mat-form-field>
+
+    <!-- Descripción -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Descripción</mat-label>
+      <textarea matInput formControlName="description" 
+                placeholder="Describe brevemente esta categoría" 
+                rows="3"></textarea>
+      <mat-error>{{ getErrorMessage('description') }}</mat-error>
+    </mat-form-field>
+
+    <!-- Icono -->
+    <div class="icon-selector">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Icono</mat-label>
+        <mat-select formControlName="icon">
+          <mat-option *ngFor="let icon of predefinedIcons" [value]="icon">
+            <mat-icon>{{ icon }}</mat-icon>
+            <span class="icon-label">{{ icon }}</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="icon-preview">
+        <mat-icon [style.color]="categoryForm.get('color')?.value">
+          {{ categoryForm.get('icon')?.value }}
+        </mat-icon>
+        <span>Vista previa</span>
+      </div>
+    </div>
+
+    <!-- Color -->
+    <div class="color-selector">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Color</mat-label>
+        <mat-select formControlName="color">
+          <mat-option *ngFor="let color of predefinedColors" [value]="color">
+            <div class="color-option">
+              <div class="color-box" [style.backgroundColor]="color"></div>
+              <span>{{ color }}</span>
+            </div>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="color-preview">
+        <div class="color-box" 
+             [style.backgroundColor]="categoryForm.get('color')?.value">
+        </div>
+        <span>Vista previa</span>
+      </div>
+    </div>
+
+    <!-- Estado (solo en modo edición) -->
+    <mat-checkbox formControlName="isActive" *ngIf="isEditMode">
+      Categoría activa
+    </mat-checkbox>
+
+    <!-- Vista previa completa -->
+    <div class="full-preview">
+      <h3>Vista previa completa</h3>
+      <div class="preview-card">
+        <div class="preview-header">
+          <mat-icon [style.color]="categoryForm.get('color')?.value">
+            {{ categoryForm.get('icon')?.value }}
+          </mat-icon>
+          <span class="preview-name">{{ categoryForm.get('name')?.value || 'Nombre de categoría' }}</span>
+        </div>
+        <div class="preview-description">
+          {{ categoryForm.get('description')?.value || 'Sin descripción' }}
+        </div>
+        <div class="preview-status">
+          <mat-chip [color]="categoryForm.get('isActive')?.value ? 'primary' : 'warn'" *ngIf="isEditMode">
+            {{ categoryForm.get('isActive')?.value ? 'Activa' : 'Inactiva' }}
+          </mat-chip>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancelar
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            type="submit"
+            [disabled]="categoryForm.invalid || isLoading">
+      <span *ngIf="!isLoading">
+        {{ isEditMode ? 'Actualizar' : 'Crear' }}
+      </span>
+      <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+    </button>
+  </mat-dialog-actions>
+</form>

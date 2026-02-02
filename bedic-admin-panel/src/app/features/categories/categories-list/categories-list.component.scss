@@ -1,0 +1,139 @@
+.categories-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--background-color) !important;
+  color: var(--text-primary) !important;
+  min-height: 100vh;
+}
+
+.categories-header {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-field {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .filter-field {
+    width: 150px;
+  }
+
+  .add-btn {
+    white-space: nowrap;
+  }
+}
+
+.categories-table {
+  .table-container {
+    position: relative;
+    min-height: 400px;
+  }
+
+  table {
+    width: 100%;
+  }
+
+  .category-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      font-weight: 500;
+    }
+  }
+
+  .category-description {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .color-preview {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .loading-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .categories-container {
+    padding: 10px;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-field,
+    .filter-field {
+      width: 100%;
+    }
+
+    .add-btn {
+      margin-top: 8px;
+    }
+  }
+
+  .category-description {
+    max-width: 100px;
+  }
+}

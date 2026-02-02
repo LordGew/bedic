@@ -1,0 +1,151 @@
+<div class="categories-container">
+  <mat-card class="categories-header">
+    <mat-card-header>
+      <mat-card-title>{{ languageService.translate('categories.title') }}</mat-card-title>
+      <mat-card-subtitle>{{ languageService.translate('categories.subtitle') }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>{{ languageService.translate('categories.search') }}</mat-label>
+          <input matInput (input)="onSearchChange($any($event.target).value)" [placeholder]="languageService.translate('categories.search_placeholder')">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>{{ languageService.translate('common.filter') }}</mat-label>
+          <mat-select [value]="filterActive" (selectionChange)="onFilterChange($event.value)">
+            <mat-option [value]="null">{{ languageService.translate('categories.all') }}</mat-option>
+            <mat-option [value]="true">{{ languageService.translate('categories.active') }}</mat-option>
+            <mat-option [value]="false">{{ languageService.translate('categories.inactive') }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="openCreateDialog()" class="add-btn">
+          <mat-icon>add</mat-icon>
+          {{ languageService.translate('categories.add') }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="categories-table">
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort>
+          <!-- Columna Nombre -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.name') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <div class="category-name">
+                <mat-icon [style.color]="getColorPreview(category.color)">
+                  {{ getIconPreview(category.icon) }}
+                </mat-icon>
+                <span>{{ category.name }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Descripción -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.description') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <span class="category-description">
+                {{ category.description || languageService.translate('categories.no_description') }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Icono -->
+          <ng-container matColumnDef="icon">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.icon') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <mat-icon [style.color]="getColorPreview(category.color)">
+                {{ getIconPreview(category.icon) }}
+              </mat-icon>
+            </td>
+          </ng-container>
+
+          <!-- Columna Color -->
+          <ng-container matColumnDef="color">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.color') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <div class="color-preview" [style.backgroundColor]="getColorPreview(category.color)">
+                {{ getColorPreview(category.color) }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Lugares -->
+          <ng-container matColumnDef="placeCount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.places') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <mat-chip [color]="category.placeCount > 0 ? 'primary' : 'accent'">
+                {{ category.placeCount }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Columna Estado -->
+          <ng-container matColumnDef="isActive">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ languageService.translate('categories.status') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <mat-chip [color]="category.isActive ? 'primary' : 'warn'">
+                {{ category.isActive ? languageService.translate('categories.active') : languageService.translate('categories.inactive') }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>{{ languageService.translate('common.actions') }}</th>
+            <td mat-cell *matCellDef="let category">
+              <button mat-icon-button 
+                      [matTooltip]="languageService.translate('categories.edit')" 
+                      (click)="openEditDialog(category)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              
+              <button mat-icon-button 
+                      [matTooltip]="languageService.translate('categories.toggle_status')" 
+                      (click)="toggleCategoryStatus(category)">
+                <mat-icon>{{ category.isActive ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+              </button>
+              
+              <button mat-icon-button 
+                      [matTooltip]="languageService.translate('categories.delete')" 
+                      color="warn"
+                      (click)="openDeleteDialog(category)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <!-- Loading Indicator -->
+        <div class="loading-container" *ngIf="isLoading">
+          <mat-spinner></mat-spinner>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="!isLoading && dataSource.length === 0">
+          <mat-icon>category</mat-icon>
+          <h3>{{ languageService.translate('categories.no_found') }}</h3>
+          <p>{{ languageService.translate('categories.empty_hint') }}</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

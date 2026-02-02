@@ -1,0 +1,134 @@
+<div class="dashboard-enhanced">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>Dashboard</h1>
+      <p class="subtitle">Platform Overview & Analytics</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" (click)="refreshDashboard()" title="Refresh">🔄</button>
+      <button class="btn-primary" (click)="exportData()">📊 Export</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-section">
+    <div class="kpi-grid">
+      <div class="kpi-card" *ngFor="let kpi of kpis" (click)="navigateTo(kpi.label.toLowerCase().replace(' ', '-'))" [style.--card-color]="kpi.color">
+        <div class="kpi-icon">{{ kpi.icon }}</div>
+        <div class="kpi-content">
+          <p class="kpi-label">{{ kpi.label }}</p>
+          <p class="kpi-value">{{ kpi.value | number }}</p>
+          <p class="kpi-change" [class]="'trend-' + kpi.trend">{{ kpi.change }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Health & Analytics -->
+  <div class="main-content">
+    <!-- Métricas de Salud Real -->
+    <div class="health-section">
+      <h2>Métricas de Reportes</h2>
+      <div class="health-grid">
+        <div class="health-card">
+          <div class="health-header">
+            <span class="health-indicator" style="background-color: #667eea;"></span>
+            <span class="health-label">Total de Reportes</span>
+          </div>
+          <div class="health-stats">
+            <span class="stat-value">{{ healthMetrics.totalReports }}</span>
+          </div>
+        </div>
+        <div class="health-card">
+          <div class="health-header">
+            <span class="health-indicator" style="background-color: #ff9800;"></span>
+            <span class="health-label">Sin Revisar</span>
+          </div>
+          <div class="health-stats">
+            <span class="stat-value">{{ healthMetrics.unreviewedReports }}</span>
+          </div>
+        </div>
+        <div class="health-card">
+          <div class="health-header">
+            <span class="health-indicator" style="background-color: #4caf50;"></span>
+            <span class="health-label">Tasa de Resolución</span>
+          </div>
+          <div class="health-stats">
+            <span class="stat-value">{{ healthMetrics.resolutionRate }}%</span>
+          </div>
+        </div>
+        <div class="health-card">
+          <div class="health-header">
+            <span class="health-indicator" style="background-color: #2196f3;"></span>
+            <span class="health-label">Categorías</span>
+          </div>
+          <div class="health-stats">
+            <span class="stat-value">{{ healthMetrics.reportsByCategory.length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actividad Reciente Resumida -->
+    <div class="activity-summary-section">
+      <h2>Actividad Reciente Resumida</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-icon">📝</span>
+            <span class="summary-label">Reportes Hoy</span>
+          </div>
+          <div class="summary-stats">
+            <span class="summary-value">{{ activitySummary.reportsCreatedToday }}</span>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-icon">✅</span>
+            <span class="summary-label">Acciones Hoy</span>
+          </div>
+          <div class="summary-stats">
+            <span class="summary-value">{{ activitySummary.actionsToday }}</span>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-header">
+            <span class="summary-icon">👥</span>
+            <span class="summary-label">Top Reporteros</span>
+          </div>
+          <div class="summary-stats">
+            <div class="top-reporters-list" *ngIf="getTopReporters().length > 0">
+              <div class="reporter-item" *ngFor="let reporter of getTopReporters()">
+                <span class="reporter-name">{{ reporter?.name || 'Unknown' }}</span>
+                <span class="reporter-count">{{ reporter?.count || 0 }} reportes</span>
+              </div>
+            </div>
+            <div class="top-reporters-list" *ngIf="getTopReporters().length === 0">
+              <p style="color: #999; font-size: 12px;">Sin datos disponibles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="activity-section">
+    <h2>{{ 'dashboard.recent_activity' | translate }}</h2>
+    <div class="activity-feed">
+      <div class="activity-item" *ngFor="let activity of recentActivity" [class]="'severity-' + activity.severity" (click)="viewActivityDetails(activity)" style="cursor: pointer;">
+        <div class="activity-icon">{{ activity.type === 'report' ? '⚠️' : activity.type === 'user' ? '👤' : activity.type === 'place' ? '📍' : activity.type === 'moderation' ? '🚫' : '💾' }}</div>
+        <div class="activity-content">
+          <p class="activity-title">{{ activity.title }}</p>
+          <p class="activity-desc">{{ activity.desc }}</p>
+        </div>
+        <div class="activity-meta">
+          <span class="activity-time">{{ activity.time }}</span>
+          <button class="info-btn" (click)="viewActivityDetails(activity); $event.stopPropagation()" title="View Details">INFO</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

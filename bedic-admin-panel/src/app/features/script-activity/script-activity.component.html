@@ -1,0 +1,175 @@
+<div class="script-activity-container">
+  <div class="header">
+    <h1>🤖 Actividad de Scripts</h1>
+    <p class="subtitle">Monitoreo de auto-descubrimiento de lugares</p>
+  </div>
+
+  <!-- Estadísticas Generales -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-label">Total Ejecuciones</div>
+        <div class="stat-value">{{ stats.totalRuns }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-icon">✓</div>
+      <div class="stat-content">
+        <div class="stat-label">Exitosas</div>
+        <div class="stat-value">{{ stats.successRuns }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card error" *ngIf="stats.errorRuns > 0">
+      <div class="stat-icon">✗</div>
+      <div class="stat-content">
+        <div class="stat-label">Errores</div>
+        <div class="stat-value">{{ stats.errorRuns }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-content">
+        <div class="stat-label">Tasa de Éxito</div>
+        <div class="stat-value">{{ stats.successRate }}%</div>
+      </div>
+    </div>
+
+    <div class="stat-card highlight">
+      <div class="stat-icon">📍</div>
+      <div class="stat-content">
+        <div class="stat-label">Lugares Agregados (30d)</div>
+        <div class="stat-value">{{ stats.last30Days.totalPlacesAdded }}</div>
+        <div class="stat-detail">de {{ stats.last30Days.totalPlacesFound }} encontrados</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⏰</div>
+      <div class="stat-content">
+        <div class="stat-label">Próxima Ejecución</div>
+        <div class="stat-value">{{ getTimeUntilNext() }}</div>
+        <div class="stat-detail">{{ formatDate(stats.nextRun) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Última Ejecución -->
+  <div class="last-run-card" *ngIf="stats?.lastRun as last">
+    <h2>📋 Última Ejecución</h2>
+    <div class="last-run-content">
+      <div class="last-run-header">
+        <span class="status-badge" [ngClass]="getStatusClass(last.status || '')">
+          {{ getStatusIcon(last.status || '') }} {{ last.status }}
+        </span>
+        <span class="timestamp">{{ formatDate(last.timestamp) }}</span>
+      </div>
+      <p class="message">{{ last.message }}</p>
+      
+      <div class="last-run-stats" *ngIf="last.stats as ls">
+        <div class="stat-item">
+          <span class="label">Encontrados:</span>
+          <span class="value">{{ ls.totalFound || 0 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Agregados:</span>
+          <span class="value success">{{ ls.totalAdded || 0 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Existentes:</span>
+          <span class="value">{{ ls.totalSkipped || 0 }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Duración:</span>
+          <span class="value">{{ ls.duration || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <!-- Ciudades Procesadas -->
+      <div class="cities-processed" *ngIf="last.stats?.citiesProcessed as cities">
+        <h3>Ciudades Procesadas:</h3>
+        <div class="cities-grid">
+          <div class="city-item" *ngFor="let city of cities">
+            <span class="city-name">{{ city.name }}</span>
+            <span class="city-stats">
+              <span class="added">+{{ city.added }}</span>
+              <span class="skipped">({{ city.skipped }} existentes)</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
+  <div class="actions-bar">
+    <button class="btn btn-primary" (click)="runManually()" [disabled]="loading">
+      <span class="icon">▶</span> Ejecutar Manualmente
+    </button>
+    <button class="btn btn-secondary" (click)="loadActivities()" [disabled]="loading">
+      <span class="icon">⟳</span> Actualizar
+    </button>
+    <button class="btn btn-danger" (click)="cleanOldActivities()" [disabled]="loading">
+      <span class="icon">🗑</span> Limpiar Antiguas
+    </button>
+  </div>
+
+  <!-- Historial de Actividades -->
+  <div class="activities-section">
+    <h2>📜 Historial de Ejecuciones</h2>
+
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Cargando actividades...</p>
+    </div>
+
+    <div class="error-message" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <div class="activities-list" *ngIf="!loading && !error">
+      <div class="activity-item" *ngFor="let activity of activities" [ngClass]="getStatusClass(activity.status)">
+        <div class="activity-header">
+          <span class="status-icon">{{ getStatusIcon(activity.status) }}</span>
+          <span class="activity-name">{{ activity.scriptName }}</span>
+          <span class="activity-timestamp">{{ formatDate(activity.timestamp) }}</span>
+        </div>
+        
+        <div class="activity-message">{{ activity.message }}</div>
+        
+        <div class="activity-stats" *ngIf="activity.stats && (activity.stats.totalFound || activity.stats.totalAdded)">
+          <span class="stat-badge">
+            🔍 {{ activity.stats.totalFound || 0 }} encontrados
+          </span>
+          <span class="stat-badge success">
+            ✓ {{ activity.stats.totalAdded || 0 }} agregados
+          </span>
+          <span class="stat-badge">
+            ⏱ {{ activity.stats.duration || 'N/A' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="activities.length === 0">
+        <div class="empty-icon">📭</div>
+        <p>No hay actividades registradas</p>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button class="btn-page" (click)="prevPage()" [disabled]="currentPage === 1">
+        ← Anterior
+      </button>
+      <span class="page-info">
+        Página {{ currentPage }} de {{ totalPages }}
+      </span>
+      <button class="btn-page" (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+</div>

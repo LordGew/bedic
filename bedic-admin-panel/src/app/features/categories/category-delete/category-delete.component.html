@@ -1,0 +1,57 @@
+<h2 mat-dialog-title>
+  <mat-icon color="warn">warning</mat-icon>
+  Eliminar Categoría
+</h2>
+
+<mat-dialog-content>
+  <div class="delete-content">
+    <div class="category-info">
+      <div class="category-header">
+        <mat-icon [style.color]="category.color">
+          {{ category.icon }}
+        </mat-icon>
+        <div class="category-details">
+          <h3>{{ category.name }}</h3>
+          <p>{{ category.description || 'Sin descripción' }}</p>
+        </div>
+      </div>
+
+      <div class="category-stats">
+        <mat-chip [color]="category.placeCount > 0 ? 'warn' : 'accent'">
+          {{ category.placeCount }} lugar(es) asociado(s)
+        </mat-chip>
+        <mat-chip [color]="category.isActive ? 'primary' : 'warn'">
+          {{ category.isActive ? 'Activa' : 'Inactiva' }}
+        </mat-chip>
+      </div>
+    </div>
+
+    <div class="warning-section">
+      <mat-icon color="warn" class="warning-icon">error_outline</mat-icon>
+      <div class="warning-text">
+        <h4>¡Atención!</h4>
+        <p>{{ getWarningMessage() }}</p>
+      </div>
+    </div>
+
+    <div class="confirmation-section">
+      <p>¿Estás seguro de que quieres continuar con esta acción?</p>
+      <p class="final-warning">Esta acción no se puede deshacer.</p>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="isLoading">
+    Cancelar
+  </button>
+  <button mat-raised-button 
+          color="warn" 
+          (click)="onConfirm()"
+          [disabled]="isLoading">
+    <span *ngIf="!isLoading">
+      {{ getConfirmButtonText() }}
+    </span>
+    <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+  </button>
+</mat-dialog-actions>

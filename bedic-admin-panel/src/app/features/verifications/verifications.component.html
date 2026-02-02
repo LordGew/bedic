@@ -1,0 +1,109 @@
+<div class="verifications-container">
+  <div class="header">
+    <h1>{{ 'verifications.title' | translate }}</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        {{ 'common.refresh' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="info-banner">
+    <mat-icon>info</mat-icon>
+    <span>{{ 'verifications.info_banner' | translate }}</span>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'verifications.status' | translate }}</mat-label>
+      <mat-select (selectionChange)="filterByStatus($event.value)">
+        <mat-option value="">{{ 'common.all' | translate }}</mat-option>
+        <mat-option value="pending">{{ 'verifications.pending' | translate }}</mat-option>
+        <mat-option value="approved">{{ 'verifications.approved' | translate }}</mat-option>
+        <mat-option value="rejected">{{ 'verifications.rejected' | translate }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ 'common.search' | translate }}</mat-label>
+      <input matInput (keyup)="applyFilter($event)" [placeholder]="'verifications.search' | translate">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="table-container">
+    <div class="table-info">
+      <p>{{ 'verifications.total' | translate }}: <strong>{{ dataSource.data.length }}</strong></p>
+    </div>
+    <table mat-table [dataSource]="dataSource" matSort class="verifications-table">
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'verifications.name' | translate }}</th>
+        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      </ng-container>
+
+      <!-- Username Column -->
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'verifications.username' | translate }}</th>
+        <td mat-cell *matCellDef="let element">&#64;{{ element.username }}</td>
+      </ng-container>
+
+      <!-- Email Column -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>{{ 'verifications.email' | translate }}</th>
+        <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'verifications.status_label' | translate }}</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-chip [ngClass]="'status-' + element.verificationStatus">
+            {{ getStatusLabel(element.verificationStatus) }}
+          </mat-chip>
+        </td>
+      </ng-container>
+
+      <!-- Date Column -->
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'verifications.date' | translate }}</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.verificationRequestedAt | date:'short' }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button (click)="viewEvidence(element)" [matTooltip]="'verifications.view_detail' | translate">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <ng-container *ngIf="element.verificationStatus === 'pending'">
+            <button mat-icon-button (click)="approveVerification(element)" [matTooltip]="'verifications.approve' | translate">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <button mat-icon-button (click)="rejectVerification(element)" [matTooltip]="'verifications.reject' | translate">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </ng-container>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons
+      aria-label="Select page of verifications">
+    </mat-paginator>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>{{ 'verifications.loading' | translate }}</p>
+  </div>
+</div>

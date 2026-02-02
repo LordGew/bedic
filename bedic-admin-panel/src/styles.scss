@@ -1,0 +1,658 @@
+/* Material Design Theme */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Theme (Default) */
+:root {
+  --primary-color: #667eea;
+  --primary-dark: #5568d3;
+  --secondary-color: #764ba2;
+  --background-color: #f5f5f5;
+  --surface-color: #ffffff;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --border-color: #e0e0e0;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #2196f3;
+}
+
+/* Dark Theme */
+:root.dark-theme {
+  --primary-color: #667eea;
+  --primary-dark: #5568d3;
+  --secondary-color: #764ba2;
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #333333;
+  --success-color: #66bb6a;
+  --warning-color: #ffa726;
+  --error-color: #ef5350;
+  --info-color: #42a5f5;
+}
+
+/* Apply theme to all elements */
+:root.dark-theme {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+:root.dark-theme * {
+  color: var(--text-primary) !important;
+}
+
+/* Asegurar que los textos sean visibles en tema oscuro */
+:root.dark-theme h1,
+:root.dark-theme h2,
+:root.dark-theme h3,
+:root.dark-theme h4,
+:root.dark-theme h5,
+:root.dark-theme h6,
+:root.dark-theme p,
+:root.dark-theme span,
+:root.dark-theme a,
+:root.dark-theme button,
+:root.dark-theme label,
+:root.dark-theme li {
+  color: var(--text-primary) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+
+/* Material overrides for dark theme */
+.dark-theme {
+  background-color: var(--background-color) !important;
+  color: var(--text-primary) !important;
+
+  .mat-toolbar {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .mat-sidenav {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-sidenav-content {
+    background-color: var(--background-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .main-content {
+    background-color: var(--background-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-card {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-form-field {
+    .mat-form-field-label {
+      color: var(--text-secondary) !important;
+    }
+
+    .mat-input-element {
+      color: var(--text-primary) !important;
+      caret-color: var(--text-primary);
+      background-color: var(--surface-color) !important;
+    }
+
+    .mat-form-field-underline {
+      background-color: var(--border-color) !important;
+    }
+  }
+
+  .mat-table {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+
+    .mat-header-cell {
+      background-color: var(--background-color) !important;
+      color: var(--text-primary) !important;
+    }
+
+    .mat-row {
+      border-bottom-color: var(--border-color) !important;
+      background-color: var(--surface-color) !important;
+    }
+
+    .mat-cell {
+      color: var(--text-primary) !important;
+    }
+  }
+
+  .mat-menu-panel {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-dialog-container {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Ensure all text elements are visible */
+  h1, h2, h3, h4, h5, h6, p, span, a, button, label, li, td, th, div {
+    color: var(--text-primary) !important;
+  }
+
+  /* Table styling for dark theme */
+  table {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+
+    thead {
+      background-color: var(--background-color) !important;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-color) !important;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(102, 126, 234, 0.1) !important;
+    }
+  }
+
+  /* Button styling in dark theme */
+  button {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+
+    &:hover:not(:disabled) {
+      background-color: var(--primary-color) !important;
+      color: white !important;
+      border-color: var(--primary-color) !important;
+    }
+  }
+
+  /* Input, textarea, select styling in dark theme */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  textarea,
+  select {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+    caret-color: #ffffff;
+
+    &::placeholder {
+      color: #999 !important;
+    }
+
+    &:focus {
+      border-color: var(--primary-color) !important;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    }
+
+    &:disabled {
+      background-color: #1a1a1a !important;
+      color: #666 !important;
+      cursor: not-allowed;
+    }
+  }
+
+  select option {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--primary-color);
+  }
+
+  /* Fix hardcoded colors that don't work in dark theme */
+  [style*="color: #1a1a1a"],
+  [style*="color: #212121"],
+  [style*="color: #333"],
+  [style*="color: #666"],
+  [style*="color: rgba(0, 0, 0"],
+  [style*="background: white"],
+  [style*="background-color: white"],
+  [style*="background: #fff"],
+  [style*="background-color: #fff"] {
+    color: var(--text-primary) !important;
+    background-color: var(--surface-color) !important;
+  }
+
+  /* Fix text colors in dark theme */
+  .category-description,
+  .empty-state,
+  .stat-label,
+  .stat-detail,
+  .subtitle,
+  .description-box p,
+  td,
+  th {
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix card backgrounds */
+  .stat-card,
+  .last-run-card,
+  .activity-card,
+  .info-panel {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix table styling */
+  table {
+    background-color: var(--surface-color) !important;
+    
+    th {
+      background-color: var(--background-color) !important;
+      color: var(--text-primary) !important;
+    }
+
+    td {
+      color: var(--text-primary) !important;
+      background-color: var(--surface-color) !important;
+    }
+
+    tr:hover {
+      background-color: rgba(102, 126, 234, 0.1) !important;
+    }
+  }
+
+  /* Fix mat-chip styling */
+  .mat-chip {
+    background-color: rgba(102, 126, 234, 0.15) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix form field styling */
+  .mat-form-field-label {
+    color: var(--text-secondary) !important;
+  }
+
+  .mat-input-element {
+    color: var(--text-primary) !important;
+    background-color: var(--surface-color) !important;
+  }
+
+  /* Fix header text */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix paragraph text */
+  p, span, a, label, li {
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix mat-card styling */
+  .mat-card {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mat-card-header {
+    background-color: var(--surface-color) !important;
+  }
+
+  .mat-card-title {
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix Categories container background */
+  .categories-container {
+    background-color: var(--background-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .categories-header {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix dialog styling */
+  .mat-dialog-container {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix menu styling */
+  .mat-menu-panel {
+    background-color: var(--surface-color) !important;
+  }
+
+  .mat-menu-item {
+    color: var(--text-primary) !important;
+  }
+
+  /* Fix button text */
+  button, .mat-button, .mat-raised-button, .mat-flat-button {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-raised-button[color="primary"] {
+    color: white !important;
+  }
+
+  /* Fix container backgrounds */
+  .container, .content-container, .main-content {
+    background-color: var(--background-color) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Utility Classes */
+.spacer {
+  flex: 1 1 auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.p-20 {
+  padding: 20px;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: var(--primary-dark);
+  }
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Status badges */
+.badge-success {
+  background-color: var(--success-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.badge-warning {
+  background-color: var(--warning-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.badge-error {
+  background-color: var(--error-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.badge-info {
+  background-color: var(--info-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Details Modal Styles */
+.details-modal-panel {
+  .mat-dialog-container {
+    background-color: var(--background-color) !important;
+    color: var(--text-primary) !important;
+    padding: 0 !important;
+  }
+}
+
+.mat-dialog-container {
+  background-color: var(--background-color) !important;
+  color: var(--text-primary) !important;
+
+  .mat-dialog-title {
+    color: var(--text-primary) !important;
+  }
+
+  .mat-dialog-content {
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Chip styles for dark theme */
+.dark-theme {
+  .mat-mdc-chip {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+  }
+
+  .mat-mdc-chip.mat-mdc-standard-chip {
+    background-color: rgba(102, 126, 234, 0.15) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Status chips */
+  .status-pending {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+    color: #ffc107 !important;
+  }
+
+  .status-verified,
+  .status-approved {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    color: #81c784 !important;
+  }
+
+  .status-rejected,
+  .status-deleted {
+    background-color: rgba(244, 67, 54, 0.15) !important;
+    color: #ef5350 !important;
+  }
+
+  /* Paginator styles */
+  .mat-mdc-paginator {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+    border-top: 1px solid var(--border-color) !important;
+
+    .mat-mdc-paginator-container {
+      background-color: var(--surface-color) !important;
+      color: var(--text-primary) !important;
+      padding: 16px !important;
+    }
+
+    .mat-mdc-paginator-page-size-label {
+      color: var(--text-primary) !important;
+      font-size: 14px !important;
+    }
+
+    .mat-mdc-paginator-range-label {
+      color: var(--text-primary) !important;
+      font-size: 14px !important;
+      margin: 0 16px !important;
+    }
+
+    .mat-mdc-icon-button {
+      color: var(--text-primary) !important;
+      
+      &:hover:not([disabled]) {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+      }
+
+      &[disabled] {
+        opacity: 0.3 !important;
+      }
+
+      .mat-icon {
+        color: var(--text-primary) !important;
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+      }
+    }
+  }
+
+  /* Select dropdown */
+  .mat-mdc-select-panel {
+    background-color: var(--surface-color) !important;
+
+    .mat-mdc-option {
+      color: var(--text-primary) !important;
+
+      &:hover {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+      }
+    }
+  }
+
+  /* Tooltip */
+  .mat-mdc-tooltip {
+    background-color: var(--surface-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Menu */
+  .mat-mdc-menu-panel {
+    background-color: var(--surface-color) !important;
+
+    .mat-mdc-menu-item {
+      color: var(--text-primary) !important;
+
+      &:hover {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+      }
+    }
+  }
+}
+
+/* Snackbar Styles */
+.snackbar-success {
+  background-color: var(--success-color) !important;
+  color: white !important;
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-error {
+  background-color: var(--error-color) !important;
+  color: white !important;
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+.snackbar-warning {
+  background-color: var(--warning-color) !important;
+  color: white !important;
+
+  .mat-mdc-snack-bar-label,
+  .mat-mdc-button {
+    color: white !important;
+  }
+}
+
+/* Place Details Dialog */
+.place-details-dialog {
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+    background-color: var(--surface-color) !important;
+  }
+}

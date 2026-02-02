@@ -1,0 +1,354 @@
+<div class="achievements-container">
+  <div class="header">
+    <h1>Gestión de Logros, Títulos y Niveles</h1>
+    <p>Administra el sistema de gamificación de la plataforma</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'achievements'"
+      (click)="activeTab = 'achievements'">
+      🏆 Logros
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'titles'"
+      (click)="activeTab = 'titles'">
+      👑 Títulos
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="activeTab === 'levels'"
+      (click)="activeTab = 'levels'">
+      📊 Niveles
+    </button>
+  </div>
+
+  <!-- LOGROS TAB -->
+  <div *ngIf="activeTab === 'achievements'" class="tab-content">
+    <div class="section-header">
+      <div>
+        <h2>Logros Disponibles</h2>
+        <p>Total: {{ achievements.length }} logros</p>
+      </div>
+      <button class="btn-primary" (click)="openAchievementModal()">
+        ➕ Nuevo Logro
+      </button>
+    </div>
+
+    <!-- Filtro -->
+    <div class="filter-section">
+      <select [(ngModel)]="achievementFilter" (change)="filterAchievements()">
+        <option *ngFor="let cat of categoryOptions" [value]="cat.value">
+          {{ cat.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loadingAchievements" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando logros...</p>
+    </div>
+
+    <!-- Grid de logros -->
+    <div *ngIf="!loadingAchievements" class="achievements-grid">
+      <div *ngFor="let achievement of filteredAchievements" class="achievement-card">
+        <div class="card-header">
+          <span class="icon">{{ achievement.icon }}</span>
+          <span class="rarity" [style.backgroundColor]="getRarityColor(achievement.rarity)">
+            {{ achievement.rarity }}
+          </span>
+        </div>
+        <h3>{{ achievement.name }}</h3>
+        <p class="description">{{ achievement.description }}</p>
+        <div class="requirements">
+          <strong>Requisito:</strong>
+          <p>{{ achievement.requirements.value }} {{ achievement.requirements.type }}</p>
+        </div>
+        <div class="rewards">
+          <strong>Recompensa:</strong>
+          <p>{{ achievement.rewards.xp }} XP</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn-small" (click)="openAchievementModal(achievement)">
+            ✏️ Editar
+          </button>
+          <button class="btn-small btn-danger" (click)="deleteAchievement(achievement._id)">
+            🗑️ Eliminar
+          </button>
+          <button class="btn-small btn-success" (click)="openGrantModal('achievement', achievement._id)">
+            🎁 Otorgar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TÍTULOS TAB -->
+  <div *ngIf="activeTab === 'titles'" class="tab-content">
+    <div class="section-header">
+      <div>
+        <h2>Títulos Disponibles</h2>
+        <p>Total: {{ titles.length }} títulos</p>
+      </div>
+      <button class="btn-primary" (click)="openTitleModal()">
+        ➕ Nuevo Título
+      </button>
+    </div>
+
+    <!-- Filtro -->
+    <div class="filter-section">
+      <select [(ngModel)]="titleFilter" (change)="filterTitles()">
+        <option value="ALL">Todos</option>
+        <option *ngFor="let cat of titleCategoryOptions" [value]="cat.value">
+          {{ cat.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loadingTitles" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando títulos...</p>
+    </div>
+
+    <!-- Grid de títulos -->
+    <div *ngIf="!loadingTitles" class="titles-grid">
+      <div *ngFor="let title of filteredTitles" class="title-card" [style.borderColor]="title.color">
+        <div class="card-header">
+          <span class="icon">{{ title.icon }}</span>
+          <span class="rarity" [style.backgroundColor]="getRarityColor(title.rarity)">
+            {{ title.rarity }}
+          </span>
+        </div>
+        <h3 [style.color]="title.color">{{ title.name }}</h3>
+        <p class="description">{{ title.description }}</p>
+        <div class="stats">
+          <p><strong>Desbloqueados:</strong> {{ title.totalUnlocked }}</p>
+          <p *ngIf="title.isLimited"><strong>Limitado hasta:</strong> {{ formatDate(title.limitedUntil!) }}</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn-small" (click)="openTitleModal(title)">
+            ✏️ Editar
+          </button>
+          <button class="btn-small btn-danger" (click)="deleteTitle(title._id)">
+            🗑️ Eliminar
+          </button>
+          <button class="btn-small btn-success" (click)="openGrantModal('title', title._id)">
+            🎁 Otorgar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NIVELES TAB -->
+  <div *ngIf="activeTab === 'levels'" class="tab-content">
+    <div class="section-header">
+      <div>
+        <h2>Configuración de Niveles</h2>
+        <p>Total: {{ levels.length }} niveles</p>
+      </div>
+      <button class="btn-primary" (click)="openLevelModal()">
+        ➕ Nuevo Nivel
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loadingLevels" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando niveles...</p>
+    </div>
+
+    <!-- Tabla de niveles -->
+    <div *ngIf="!loadingLevels" class="levels-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Nivel</th>
+            <th>Nombre</th>
+            <th>XP Mínimo</th>
+            <th>XP Máximo</th>
+            <th>Recompensa XP</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let level of levels">
+            <td><strong>{{ level.level }}</strong></td>
+            <td>{{ level.name }}</td>
+            <td>{{ level.minXP }}</td>
+            <td>{{ level.maxXP }}</td>
+            <td>{{ level.rewards.xp }}</td>
+            <td>
+              <button class="btn-small" (click)="openLevelModal(level)">
+                ✏️ Editar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL - Logro -->
+  <div *ngIf="showAchievementModal" class="modal-overlay" (click)="closeAchievementModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Logro' : 'Nuevo Logro' }}</h2>
+        <button class="btn-close" (click)="closeAchievementModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre:</label>
+          <input type="text" [(ngModel)]="formData.name" placeholder="Nombre del logro">
+        </div>
+        <div class="form-group">
+          <label>Descripción:</label>
+          <textarea [(ngModel)]="formData.description" placeholder="Descripción del logro"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Icono (emoji):</label>
+          <input type="text" [(ngModel)]="formData.icon" placeholder="🏆">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoría:</label>
+            <select [(ngModel)]="formData.category">
+              <option *ngFor="let cat of categoryOptions" [value]="cat.value">
+                {{ cat.label }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rareza:</label>
+            <select [(ngModel)]="formData.rarity">
+              <option *ngFor="let rarity of rarityOptions" [value]="rarity.value">
+                {{ rarity.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Requisito:</label>
+            <select [(ngModel)]="formData.requirements.type">
+              <option *ngFor="let req of requirementTypeOptions" [value]="req.value">
+                {{ req.label }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Valor:</label>
+            <input type="number" [(ngModel)]="formData.requirements.value" placeholder="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>XP de Recompensa:</label>
+          <input type="number" [(ngModel)]="formData.rewards.xp" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="formData.isActive">
+            Activo
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAchievementModal()">Cancelar</button>
+        <button class="btn-submit" (click)="saveAchievement()" [disabled]="saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL - Título -->
+  <div *ngIf="showTitleModal" class="modal-overlay" (click)="closeTitleModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Título' : 'Nuevo Título' }}</h2>
+        <button class="btn-close" (click)="closeTitleModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre:</label>
+          <input type="text" [(ngModel)]="formData.name" placeholder="Nombre del título">
+        </div>
+        <div class="form-group">
+          <label>Descripción:</label>
+          <textarea [(ngModel)]="formData.description" placeholder="Descripción del título"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Icono (emoji):</label>
+            <input type="text" [(ngModel)]="formData.icon" placeholder="👑">
+          </div>
+          <div class="form-group">
+            <label>Color:</label>
+            <input type="color" [(ngModel)]="formData.color">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoría:</label>
+            <select [(ngModel)]="formData.category">
+              <option *ngFor="let cat of titleCategoryOptions" [value]="cat.value">
+                {{ cat.label }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rareza:</label>
+            <select [(ngModel)]="formData.rarity">
+              <option *ngFor="let rarity of rarityOptions" [value]="rarity.value">
+                {{ rarity.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="formData.isLimited">
+            Limitado en tiempo
+          </label>
+        </div>
+        <div class="form-group" *ngIf="formData.isLimited">
+          <label>Limitado hasta:</label>
+          <input type="date" [(ngModel)]="formData.limitedUntil">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeTitleModal()">Cancelar</button>
+        <button class="btn-submit" (click)="saveTitle()" [disabled]="saving">
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL - Otorgar -->
+  <div *ngIf="showGrantModal" class="modal-overlay" (click)="closeGrantModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Otorgar {{ grantType === 'achievement' ? 'Logro' : 'Título' }}</h2>
+        <button class="btn-close" (click)="closeGrantModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>ID del Usuario:</label>
+          <input type="text" [(ngModel)]="grantUserId" placeholder="Ingresa el ID del usuario">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeGrantModal()">Cancelar</button>
+        <button class="btn-submit" (click)="grantItem()" [disabled]="saving">
+          {{ saving ? 'Otorgando...' : 'Otorgar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

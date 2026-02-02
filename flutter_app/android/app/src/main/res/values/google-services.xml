@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_api_key" translatable="false">AIzaSyAYZugW4Z2XcNLsEu2WnCIyUWVdc-0dJgM</string>
+    <string name="google_app_id" translatable="false">1:1090040857039:android:abcdef1234567890</string>
+    <string name="gcm_defaultSenderId" translatable="false">1090040857039</string>
+    <string name="project_id" translatable="false">flutter-app-demo</string>
+</resources>
